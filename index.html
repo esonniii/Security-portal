@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Portal - Sign In</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0a0c10;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Screen Flashes and Effects */
+    .flash-red { animation: flashRed 0.3s ease-in-out 2; }
+    @keyframes flashRed {
+      0%, 100% { background-color: #0a0c10; }
+      50% { background-color: #3f0000; }
+    }
+    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    .container {
+      width: min(450px, 92%);
+      z-index: 2;
+    }
+
+    /* AUTH CARD STYLING */
+    .auth-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .auth-card h1 {
+      font-size: 22px;
+      margin: 0 0 8px 0;
+      font-weight: 600;
+    }
+    .auth-card .subtitle {
+      color: #8b949e;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: #c9d1d9;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #e6edf3;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: #58a6ff; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: #238636;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #2ea043; }
+
+    .hidden { display: none !important; }
+
+    /* TERMINAL CARD */
+    .terminal-card {
+      width: min(750px, 92%);
+      background: #0b0b0b;
+      border: 1px solid #333;
+      padding: 30px;
+      border-radius: 12px;
+      font-family: "Courier New", monospace;
+    }
+    .terminal-window {
+      background: #050505;
+      border: 1px solid #222;
+      border-radius: 8px;
+      margin-top: 20px;
+      text-align: left;
+      overflow: hidden;
+    }
+    .terminal-header {
+      background: #181818;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #222;
+    }
+    .dots { display: flex; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .term-title {
+      color: #666;
+      font-size: 12px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .status { margin: 15px 0; font-weight: bold; font-family: "Courier New", monospace; }
+    .progress {
+      width: 100%;
+      height: 18px;
+      background: #1b1b1b;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #333;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: #00ff66;
+      transition: width .4s, background-color .4s;
+    }
+    .log {
+      padding: 15px;
+      height: 220px;
+      overflow-y: auto;
+      color: #00ff66;
+      font-size: 13px;
+      line-height: 1.6;
+      font-family: "Courier New", monospace;
+    }
+    .line { margin-bottom: 4px; }
+    .warning { color: #ff4444; font-weight: bold; }
+    .critical { color: #ffaa00; }
+    
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: #00ff66;
+      margin-left: 4px;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* BREACH SCREEN */
+    .hacked-card {
+      width: min(650px, 92%);
+      background: #120303;
+      border: 2px solid #ff0000;
+      padding: 35px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(255, 0, 0, 0.4);
+      font-family: "Courier New", monospace;
+      color: #ff3333;
+      z-index: 10;
+    }
+    .hacked-card h1 {
+      font-size: 26px;
+      margin: 10px 0;
+      letter-spacing: 1px;
+      animation: blink 0.6s infinite;
+    }
+    .alert-icon { font-size: 50px; margin-bottom: 5px; }
+
+    .timer-box {
+      background: #000000;
+      border: 2px solid #ff0000;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.5);
+    }
+    .timer-label {
+      font-size: 12px;
+      color: #ffaaaa;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .timer-display {
+      font-size: 42px;
+      font-weight: bold;
+      color: #ff0000;
+      letter-spacing: 4px;
+      text-shadow: 0 0 10px #ff0000;
+    }
+
+    .hacked-details {
+      background: #050000;
+      border: 1px dashed #ff3333;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 13px;
+      color: #ffaaaa;
+      line-height: 1.6;
+    }
+    .btn-continue {
+      width: 100%;
+      padding: 15px;
+      background: #ff0000;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: bold;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-continue:hover { background: #cc0000; transform: scale(1.02); }
+
+    /* POPUP WINDOWS */
+    .popup-window {
+      position: fixed;
+      width: min(280px, 85vw);
+      background: #f0f0f0;
+      color: #000;
+      border: 2px solid #0055ea;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      z-index: 100;
+      user-select: none;
+      animation: popIn 0.2s ease-out;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .popup-header {
+      background: linear-gradient(to right, #0055ea, #1976d2);
+      color: white;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .popup-body {
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }
+    .popup-icon { font-size: 22px; }
+    .popup-footer {
+      background: #e1e1e1;
+      padding: 6px 10px;
+      text-align: right;
+    }
+    .popup-btn {
+      padding: 4px 12px;
+      background: #cccccc;
+      border: 1px solid #999;
+      border-radius: 3px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* REVEAL SCREEN */
+    .reveal-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      padding: 40px 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .reveal-card h1 { font-size: 36px; margin: 0 0 10px 0; }
+    .reveal-message {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #c9d1d9;
+      margin: 15px 0;
+    }
+    .btn-reset {
+      padding: 12px 24px;
+      background: #238636;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+    .btn-reset:hover { background: #2ea043; }
+  </style>
+</head>
+<body id="body">
+
+  <div class="container" id="mainContainer">
+    <!-- 1. SIGNUP FORM -->
+    <div class="auth-card" id="signupScreen">
+      <h1>Create an Account</h1>
+      <p class="subtitle">Enter your credentials to access the portal</p>
+      
+      <form onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label for="usernameInput">Username</label>
+          <input type="text" id="usernameInput" placeholder="Choose a username" required autofocus autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="passwordInput">Password</label>
+          <input type="password" id="passwordInput" placeholder="Create a password" required autocomplete="off">
+        </div>
+
+        <button type="submit" class="btn-submit">Sign Up & Continue</button>
+      </form>
+    </div>
+
+    <!-- 2. TERMINAL SCAN SCREEN -->
+    <div class="terminal-card hidden" id="scanScreen">
+      <h2 style="margin: 0 0 10px 0; font-size: 20px;">AUTHENTICATING SESSION</h2>
+      <p style="margin: 0; color: #888;">Account Context: <strong id="usernameDisplay" style="color: #fff;"></strong></p>
+      
+      <div class="status" id="status">Initializing handshake...</div>
+      <div class="progress">
+        <div class="bar" id="bar"></div>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="dots">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+          </div>
+          <div class="term-title">bash -- verify_account.sh</div>
+        </div>
+        <div class="log" id="log">
+          <span id="cursor" class="cursor"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. VIRUS / BREACH SCREEN -->
+    <div class="hacked-card hidden" id="hackedScreen">
+      <div class="alert-icon">⚠️</div>
+      <h1 id="breachHeader">CRITICAL THREAT DETECTED</h1>
+      <p id="breachSubtext" style="color: #ffffff; font-size: 14px; margin-bottom: 10px;"></p>
+
+      <div class="timer-box">
+        <div class="timer-label">Time Remaining Until Data Purge:</div>
+        <div class="timer-display" id="timer">02:00</div>
+      </div>
+
+      <div class="hacked-details">
+        <div>> <strong>Status:</strong> System Encrypted</div>
+        <div>> <strong>Target User:</strong> <span id="hackedUser"></span></div>
+        <div>> <strong>IP Address:</strong> <span id="hackedIp"></span></div>
+        <div>> <strong>Device Type:</strong> <span id="hackedDevice"></span></div>
+        <div style="color: #ff3333; margin-top: 8px;">> <strong>Risk Level:</strong> SEVERE (Personal data leaking...)</div>
+      </div>
+
+      <p id="breachWarning" style="font-size: 12px; color: #888;"></p>
+
+      <button class="btn-continue" id="btnRecovery" onclick="continueRecovery()">CONTINUE TO SYSTEM RECOVERY »</button>
+    </div>
+
+    <!-- 4. REVEAL SCREEN -->
+    <div class="reveal-card hidden" id="revealScreen">
+      <h1>😂</h1>
+      <h2 style="margin: 0; font-size: 26px; color: #e6edf3;">YOU GOT PRANKED!</h2>
+      <p class="reveal-message" id="revealMessage"></p>
+      <p style="color: #8b949e; font-size: 14px;">Your device, password, and personal data are 100% safe. Nothing was downloaded or infected.</p>
+      <button class="btn-reset" onclick="location.reload()">PRANK SOMEONE ELSE</button>
+    </div>
+  </div>
+
+  <script>
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    
+    // Detect mobile vs desktop environment
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
+    // Device-aware terminology
+    const actionWord = isMobile ? "tap" : "click";
+    const ActionWordCapital = isMobile ? "Tap" : "Click";
+    const deviceName = isMobile ? "Mobile Device" : "Desktop Computer";
+    const containerWord = isMobile ? "app / tab" : "browser window";
+
+    // Audio synthesizer with error handling
+    function playAudio(freq = 400, duration = 300, type = 'sawtooth') {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration / 1000);
+        setTimeout(() => { osc.stop(); audioCtx.close(); }, duration);
+      } catch(e) {}
+    }
+
+    const popupMessages = [
+      "Trojan:Win32/Wacatac.H!ml detected!",
+      "Security Alert: System breach in progress!",
+      "Unauthorized memory payload blocked.",
+      "Warning: Outbound data leakage detected!",
+      "Critical System Error: Access Restricted."
+    ];
+
+    function spawnAntivirusPopup() {
+      const popup = document.createElement("div");
+      popup.className = "popup-window";
+      
+      const randomX = Math.random() * (window.innerWidth - 290);
+      const randomY = Math.random() * (window.innerHeight - 180);
+      popup.style.left = `${Math.max(10, randomX)}px`;
+      popup.style.top = `${Math.max(10, randomY)}px`;
+
+      const msg = popupMessages[Math.floor(Math.random() * popupMessages.length)];
+
+      popup.innerHTML = `
+        <div class="popup-header">
+          <span>Security Alert</span>
+          <span>✕</span>
+        </div>
+        <div class="popup-body">
+          <div class="popup-icon">⚠️</div>
+          <div>${msg}</div>
+        </div>
+        <div class="popup-footer">
+          <button class="popup-btn" onclick="this.closest('.popup-window').remove(); spawnAntivirusPopup(); spawnAntivirusPopup();">${ActionWordCapital} to Dismiss</button>
+        </div>
+      `;
+
+      document.body.appendChild(popup);
+      playAudio(700, 80, 'sine');
+    }
+
+    let timerInterval = null;
+    let popupInterval = null;
+
+    // COUNTDOWN TIMER (2 MINUTES = 120 SECONDS)
+    function startCountdown(username, info) {
+      let totalSeconds = 120; 
+      const timerDisplay = document.getElementById("timer");
+
+      // Initial display setting
+      timerDisplay.textContent = "02:00";
+
+      // Popup interval
+      popupInterval = setInterval(() => {
+        spawnAntivirusPopup();
+      }, 3000);
+
+      spawnAntivirusPopup();
+
+      // Main Timer Loop
+      timerInterval = setInterval(() => {
+        totalSeconds--;
+
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+
+        const formattedMin = minutes < 10 ? "0" + minutes : minutes;
+        const formattedSec = seconds < 10 ? "0" + seconds : seconds;
+
+        timerDisplay.textContent = `${formattedMin}:${formattedSec}`;
+
+        if (totalSeconds % 2 === 0) {
+          playAudio(900, 50, 'sine');
+        }
+
+        // TRIGGER AUTOMATIC REVEAL WHEN TIMER EXPIRES
+        if (totalSeconds <= 0) {
+          clearInterval(timerInterval);
+          clearInterval(popupInterval);
+
+          document.querySelectorAll(".popup-window").forEach(el => el.remove());
+
+          document.getElementById("hackedScreen").classList.add("hidden");
+          document.getElementById("revealScreen").classList.remove("hidden");
+
+          document.getElementById("revealMessage").textContent = 
+            `Gotcha, ${username}! Your ${info.os} ${deviceName.toLowerCase()} is completely fine. You just spent 2 minutes getting pranked by a fake security portal! 😂`;
+
+          playAudio(800, 300, 'sine');
+        }
+      }, 1000);
+    }
+
+    async function typeLogLine(text, styleClass = "", charSpeed = 20) {
+      const log = document.getElementById("log");
+      const cursor = document.getElementById("cursor");
+      
+      const lineElement = document.createElement("div");
+      lineElement.className = "line" + (styleClass ? " " + styleClass : "");
+      log.insertBefore(lineElement, cursor);
+
+      const prefix = "[auth@session ~]# ";
+      lineElement.textContent = prefix;
+
+      for (let i = 0; i < text.length; i++) {
+        lineElement.textContent += text[i];
+        log.scrollTop = log.scrollHeight;
+        await sleep(charSpeed);
+      }
+    }
+
+    async function getDeviceInfo() {
+      const ua = navigator.userAgent;
+      let os = "Unknown OS";
+      if (ua.indexOf("Win") !== -1) os = "Windows OS";
+      if (ua.indexOf("Mac") !== -1) os = "macOS";
+      if (ua.indexOf("Linux") !== -1) os = "Linux";
+      if (ua.indexOf("Android") !== -1) os = "Android";
+      if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
+      let ip = "192.168.1." + Math.floor(Math.random() * 254 + 1);
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ip = data.ip;
+      } catch(e) {}
+
+      return { os, ip, screen: `${window.screen.width}x${window.screen.height}` };
+    }
+
+    async function handleSignup(event) {
+      event.preventDefault();
+      
+      const usernameInput = document.getElementById("usernameInput").value.trim();
+      document.getElementById("passwordInput").value = ""; 
+      const username = usernameInput.replace(/[<>]/g, "");
+
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+
+      document.getElementById("signupScreen").classList.add("hidden");
+      document.getElementById("scanScreen").classList.remove("hidden");
+      document.getElementById("usernameDisplay").textContent = username;
+
+      const status = document.getElementById("status");
+      const bar = document.getElementById("bar");
+      const body = document.getElementById("body");
+
+      const info = await getDeviceInfo();
+
+      status.textContent = "Validating credentials...";
+      await typeLogLine("User sign-up request received.", "", 15);
+      await sleep(500);
+
+      bar.style.width = "30%";
+      status.textContent = `Analyzing ${deviceName.toLowerCase()} profile...`;
+      await typeLogLine(`Detected Operating System: ${info.os}`, "", 15);
+      await typeLogLine(`Public IP Address: ${info.ip}`, "critical", 15);
+      await sleep(600);
+
+      bar.style.width = "75%";
+      bar.style.backgroundColor = "#ff4444";
+      status.textContent = "🚨 INTRUSION DETECTED";
+      await typeLogLine("WARNING: Remote Trojan payload executed!", "warning", 15);
+      await typeLogLine(`Locking memory access on ${deviceName}...`, "warning", 15);
+      
+      playAudio(500, 400, 'sawtooth');
+      body.classList.add("flash-red");
+      body.classList.add("shake");
+      setTimeout(() => {
+        body.classList.remove("flash-red");
+        body.classList.remove("shake");
+      }, 600);
+      await sleep(1500);
+
+      bar.style.width = "100%";
+      status.textContent = "CRITICAL FAILURE.";
+      
+      // Setup Device-Specific Breach Text
+      document.getElementById("scanScreen").classList.add("hidden");
+      document.getElementById("hackedScreen").classList.remove("hidden");
+      
+      document.getElementById("breachSubtext").textContent = `YOUR ${deviceName.toUpperCase()} HAS BEEN COMPROMISED BY SPYWARE/TROJAN.B64`;
+      document.getElementById("breachWarning").textContent = `Do not close this ${containerWord}. System recovery intervention required immediately.`;
+      document.getElementById("btnRecovery").textContent = `${ActionWordCapital} to Attempt Recovery »`;
+
+      document.getElementById("hackedUser").textContent = username;
+      document.getElementById("hackedIp").textContent = info.ip;
+      document.getElementById("hackedDevice").textContent = `${info.os} (${deviceName})`;
+
+      // Start 2-Minute Timer
+      startCountdown(username, info);
+    }
+
+    function continueRecovery() {
+      playAudio(300, 500, 'sawtooth');
+      alert(`⚠️ ERROR 0x80070422: Recovery failed. ${ActionWordCapital} OK and wait for automatic system purge.`);
+    }
+  </script>
+</body>
+</html>
